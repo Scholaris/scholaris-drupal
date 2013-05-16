@@ -1,0 +1,131 @@
+﻿<?php
+
+function scholaris_node_view($node, $view_mode = 'full', $langcode = NULL)
+{
+   $body = $node->content['body'][0]['#markup'];
+   
+   if($view_mode == 'full' || $view_mode == 'teaser')
+   {
+		$attrs = explode(' ',trim($body,'[]'));
+		$width = 0;
+		foreach ($attrs as $attrstr){
+			$attr = explode('=', $attrstr);
+			if($attr[0]=='width'){
+				$width = trim($attr[1],'"');
+			}
+		}
+		$height = floor( ( (int)$width * 3 ) / 4 );
+	   $body = str_replace(array(
+					'[scholaris ',
+					'sl_token="',
+					'po_token="',
+					']'
+			), array(
+					'<iframe id="scholaris" ',
+					'src="http://creator.staging.scht.pl/preview/show/token/',
+					'src="http://portal.staging.scht.pl/resources/run/token/',
+					' scrolling="no" frameborder="1" style="border:1px solid #d42ad4; overflow:hidden; height: '.$height.'px" allowtransparency="true"></iframe>'
+			), $body);
+   $node->content['body'][0]['#markup'] = $body;
+	}
+	
+}
+
+function scholaris_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#scholaris":
+      return '<p>' . t("Scholaris module help") . '</p>';
+      break;
+  }
+} 
+
+function scholaris_perm() {   
+  return array('access myform content'); 
+}
+
+function scholaris_menu() {     
+  $items = array();
+  
+  $items['admin/config/scholaris'] = array(
+  'title' => 'Scholaris module',
+  'description' =>  'Configure settings.',
+  'page callback' => 'drupal_get_form',
+  'page arguments' => array('scholaris_admin'),
+  'access arguments' => array('access myform content'),
+  'menu_name' => 'scholaris',
+  );
+  
+  return $items; 
+}
+
+function scholaris_admin() {
+
+	$login = variable_get('scholaris_email', '');	
+	$token = variable_get('scholaris_token', '');
+
+	$form['scholaris_email'] = array(
+    	'#type' => 'textfield',
+		'#default_value' => variable_get('scholaris_email', 'email@domain.com'),	
+    	'#title' => t('Adres email'),         
+    	'#required' => TRUE,
+	);
+	
+	$form['scholaris_token'] = array(       
+    	'#type' => 'password',
+		'#default_value' => variable_get('scholaris_token', ''),	
+    	'#title' => t('Token'),         
+    	'#required' => FALSE,
+	);
+  
+  $form['html'] = array(
+  '#type' => 'markup',
+  '#markup' => '<fieldset style="border:0px; padding:1em; margin-top:2em">
+	<legend>Zasoby Scholaris</legend>
+	<div id="j-sidebar-container" class="span2" style="margin-bottom:1em">
+		<div id="sidebar">
+			<div class="sidebar-nav">
+				<ul id="submenu" class="nav nav-list">
+					<li id="nav_search">
+						<a id="id1" onclick="linkOneOnClick()" href="http://creator.staging.scht.pl/external/search/email/" target="scholaristarget">Wyszukiwarka zasobów portalu</a>
+					</li>
+					<li id="nav_user">
+						<a id="id2" onclick="linkTwoOnClick()" href="http://creator.staging.scht.pl/external/publishlist/email/" target="scholaristarget">Moje e-zasoby</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<div>
+		<iframe id="testid" name="scholaristarget" width="900px;" height="800px;"></iframe>
+	</div>
+  </fieldset></head>',
+   );
+  
+  return system_settings_form($form);
+
+}
+
+?>
+
+<script type="text/javascript">
+
+  function linkOneOnClick()
+  {
+  var link;
+  (function ($) {
+	var email = $("#edit-scholaris-email").val();
+	$("#id1").attr('href', 'http://creator.staging.scht.pl/external/search/email/' + email);
+	})(jQuery);
+  }
+  
+  function linkTwoOnClick()
+  {
+  var link;
+  (function ($) {
+	var email = $("#edit-scholaris-email").val();
+	$("#id2").attr('href', 'http://creator.staging.scht.pl/external/publishlist/email/' + email);
+	})(jQuery);
+  }
+
+</script>

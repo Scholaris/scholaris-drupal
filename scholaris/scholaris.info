@@ -1,0 +1,4 @@
+name = Scholaris
+description = Scholaris module.
+core = 7.x
+configure = admin/config/scholaris
